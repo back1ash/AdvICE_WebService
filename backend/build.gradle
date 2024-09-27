@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.1'
 	id 'io.spring.dependency-management' version '1.1.5'
+    id 'com.google.cloud.tools.jib' version '3.1.4'
 }
 
 group = 'com.icehufs'
@@ -44,4 +45,30 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+jib {
+    from { 
+        image = 'adoptopenjdk/openjdk11:alpine-jre'
+    }
+    to { 
+        image = 'back1ash/ice-back'
+        tags = ['1.0']
+    }
+    container {
+        entrypoint = ['java', '-Dspring profiles.active=test', '-jar', 'app.jar']
+        ports = ['8080'] 
+
+        environment = [SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"]
+        labels = [Iversion: project.version, name: project.name, group: project.group]
+
+        format = 'Docker'
+    }
+    extraDirectories {
+        paths { 
+            path {
+                from = file('build/libs') 
+            }
+        }
+    }
 }
